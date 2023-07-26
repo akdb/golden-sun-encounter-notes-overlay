@@ -1,0 +1,34 @@
+name: Lua CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        luaVersion: ["5.2.4"]
+        
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: true
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: leafo/gh-actions-lua@v10
+      with:
+        luaVersion: ${{ matrix.luaVersion }}
+    - run: |
+        lua squish
+        cp license.lua gs-encounter-notes-overlay.lua
+        cat gs-encounter-notes-overlay.inc >> gs-encounter-notes-overlay.lua
+    - uses: actions/upload-artifact@v3
+      with:
+        name: Encounter Notes Overlay
+        path: gs-encounter-notes-overlay.lua
+        if-no-files-found: error

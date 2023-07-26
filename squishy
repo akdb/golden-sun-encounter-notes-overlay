@@ -1,0 +1,14 @@
+-- Output filename
+Output "gs-encounter-notes-overlay.inc"
+
+-- Modules
+Module "class" "src/class.lua"
+Module "Controller" "src/Controller.lua"
+Module "csv" "src/csv.lua"
+Module "GameData" "src/GameData.lua"
+Module "MemoryStructure" "src/MemoryStructure.lua"
+Module "NotesFile" "src/NotesFile.lua"
+Module "Overlay" "src/Overlay.lua"
+
+-- This is normal/main script
+Main "src/Main.lua"
