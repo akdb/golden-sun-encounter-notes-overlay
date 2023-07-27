@@ -2,9 +2,9 @@ require = function(file)
     return dofile(file .. '.lua')
 end
 
-local Controller = require('Controller.lua')
+local Controller = dofile('Controller.lua')
 
-Controller.init('notes.csv')
+Controller.init('gs-encounter-notes.csv')
 
 while true do
     Controller.frame()
