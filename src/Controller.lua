@@ -1,6 +1,7 @@
 local NotesFile = require 'NotesFile'
 local GameData = require 'GameData'
 local Overlay = require 'Overlay'
+local Downloader = require 'Downloader'
 
 local allNotes = nil
 local currentEncounter = nil
@@ -29,7 +30,20 @@ function getReverse(t)
 end
 
 
-function Controller.init(notesFile)
+function Controller.init(notesFile, downloadUrl)
+    local test = io.open(notesFile, 'r')
+    if test == nil then
+        if downloadUrl == nil then
+            error("Cannot proceed, " .. notesFile .. " does not exist")
+        end
+
+        print(notesFile .. " not found, downloading from " .. downloadUrl)
+        if Downloader.get(downloadUrl, notesFile) == false then
+            error("Download failed, please place a " .. notesfile .. " in the same folder as gs-encounter-notes-overlay.lua")
+        end
+    else
+        io.close(test)
+    end
     allNotes = NotesFile.load(Controller.notesFile)
     Overlay.clear()
     print("")
