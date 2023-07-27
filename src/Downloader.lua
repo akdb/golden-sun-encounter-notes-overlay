@@ -1,4 +1,4 @@
-Downloader = {}
+local Downloader = {}
 
 function Downloader.get(url, destination)
     local cmd = string.format('curl --fail --verbose --location "%s" --fail --output "%s"', url, destination)

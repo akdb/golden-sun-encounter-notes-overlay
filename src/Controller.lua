@@ -22,7 +22,7 @@ function getEncounterKey(t)
 end
 
 function getReverse(t)
-    result = {}
+    local result = {}
     for i=#t,1, -1 do
         result[#result+1] = t[i]
     end
@@ -86,7 +86,7 @@ function Controller.frame()
                     rawNotes = allNotes[reverseKey]
                 end
             end
-         
+
             if rawNotes ~= nil then
                 --arrange notes and numbers according to party/enemy positions
                 local partyOrder = GameData.partyOrder:asArray()
@@ -132,7 +132,7 @@ function Controller.frame()
                     end
                 end
             end
-            
+
             lastQueuedCommandCount = queuedCommandCount
             newBattle = false
         end

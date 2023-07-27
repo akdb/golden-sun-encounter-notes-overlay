@@ -1,20 +1,12 @@
 local MemoryStructure = require('MemoryStructure')
 
-GameData = {
+local GameData = {
     partyFlags      = MemoryStructure(0x02000040,   1, nil, memory.read_u8),
     battleSlotList  = MemoryStructure(0x020300b2,   2, nil, memory.read_u8),
     partyOrder      = MemoryStructure(0x02000438,   1, nil, memory.read_u8),
     battleCommand   = MemoryStructure(0x02030338,  16, nil, memory.read_u8),
     spriteData      = MemoryStructure(0x07000000,   8, nil, memory.read_u16_le),
-    affineComponent = MemoryStructure(0x07000006,   8, nil, memory.read_s16_le),
     enemyNames      = MemoryStructure(0x02030878, 332,  15, memory.read_bytes_as_array)
-}
-
-local spriteSizes = {
-    {{8,8},{16,8},{8,16}},
-    {{16,16},{32,8},{8,32}},
-    {{32,32},{32,16},{16,32}},
-    {{64,64},{64,32},{32,64}}
 }
 
 function GameData.partyFlags:partySize()
@@ -30,7 +22,7 @@ end
 
 function GameData.battleSlotList:enemyCount()
     local size = 0
-    
+
     local v = self:read(size)
     while v > 0 and v < 0xff and size < 7 do
         size = size + 1
@@ -40,7 +32,7 @@ function GameData.battleSlotList:enemyCount()
 end
 
 function GameData.partyOrder:asArray()
-    result = {}
+    local result = {}
     for i = 0,3 do
         table.insert(result, self:read(i))
     end
@@ -62,7 +54,7 @@ function GameData.battleCommand:queuedCommandCount()
 end
 
 function GameData.spriteData:positionsArray(index, length)
-    result = {}
+    local result = {}
     for i=index,index+length-1 do
         local attr0 = self:read(i, 0)
         local attr1 = self:read(i, 2)
