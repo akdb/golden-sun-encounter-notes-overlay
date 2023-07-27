@@ -2,15 +2,21 @@ local csv = require 'csv'
 
 local NotesFile = {}
 
-function NotesFile.load()
+function NotesFile.load(fileName)
 	local data = {}
-	local file = csv.open("notes.csv", {header=true})
+	local file = csv.open(fileName, {header=true})
+    if file == nil then
+        error("Could not load notes file " .. fileName)
+    else
+        print("Loaded " .. fileName)
+    end
     for fields in file:lines() do
         if fields.fileDescription and #fields.fileDescription > 0 then
             print(fields.fileDescription)
         end
         data[fields.encounterKey] = decodeNote(fields)
     end
+    file:close()
 
 	return data
 end

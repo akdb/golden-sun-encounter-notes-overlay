@@ -39,12 +39,12 @@ function Controller.init(notesFile, downloadUrl)
 
         print(notesFile .. " not found, downloading from " .. downloadUrl)
         if Downloader.get(downloadUrl, notesFile) == false then
-            error("Download failed, please place a " .. notesfile .. " in the same folder as gs-encounter-notes-overlay.lua")
+            error("Download failed, please place a " .. notesFile .. " in the same folder as gs-encounter-notes-overlay.lua")
         end
     else
         io.close(test)
     end
-    allNotes = NotesFile.load(Controller.notesFile)
+    allNotes = NotesFile.load(notesFile)
     Overlay.clear()
     print("")
     print("Golden Sun Encounter Notes script prepped and ready")
