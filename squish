@@ -1,0 +1,341 @@
+#!/usr/bin/lua5.2
+--Squish (C) 2009-2010 Matthew Wild
+
+--This project is licensed under the same MIT license as Lua 5.1.
+--
+--Permission is hereby granted, free of charge, to any person obtaining a copy
+--of this software and associated documentation files (the "Software"), to deal
+--in the Software without restriction, including without limitation the rights
+--to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+--copies of the Software, and to permit persons to whom the Software is
+--furnished to do so, subject to the following conditions:
+--
+--The above copyright notice and this permission notice shall be included in
+--all copies or substantial portions of the Software.
+--
+--THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+--IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+--FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+--AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+--LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+--OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+--THE SOFTWARE.
+pcall(require,"luarocks.require");
+local o={v="verbose",vv="very_verbose",o="output",q="quiet",qq="very_quiet",g="debug"}
+local e={use_http=false,module_compat=not not _ENV};
+for t,a in ipairs(arg)do
+if a:match("^%-")then
+local t=a:match("^%-%-?([^%s=]+)()")
+t=(o[t]or t):gsub("%-+","_");
+if t:match("^no_")then
+t=t:sub(4,-1);
+e[t]=false;
+else
+e[t]=a:match("=(.*)$")or true;
+end
+else
+base_path=a;
+end
+end
+if e.very_verbose then e.verbose=true;end
+if e.very_quiet then e.quiet=true;end
+local t=function()end
+local a,u,s,n=t,t,t,t;
+if not e.very_quiet then a=print;end
+if not e.quiet then u=print;end
+if e.verbose or e.very_verbose then s=print;end
+if e.very_verbose then n=print;end
+print=s;
+local o,l,i={},{},{};
+function Module(e)
+if o[e]then
+s("Ignoring duplicate module definition for "..e);
+return function()end
+end
+local t=#o+1;
+o[t]={name=e,url=___fetch_url};
+o[e]=o[t];
+return function(e)
+o[t].path=e;
+end
+end
+function Resource(t,a)
+local e=#i+1;
+i[e]={name=t,path=a or t};
+return function(t)
+i[e].path=t;
+end
+end
+function AutoFetchURL(e)
+___fetch_url=e;
+end
+function Main(e)
+table.insert(l,e);
+end
+function Output(t)
+if e.output==nil then
+out_fn=t;
+end
+end
+function Option(t)
+t=t:gsub("%-","_");
+if e[t]==nil then
+e[t]=true;
+return function(a)
+e[t]=a;
+end
+else
+return function()end;
+end
+end
+function GetOption(t)
+return e[t:gsub('%-','_')];
+end
+function Message(t)
+if not e.quiet then
+u(t);
+end
+end
+function Error(t)
+if not e.very_quiet then
+a(t);
+end
+end
+function Exit()
+os.exit(1);
+end
+base_path=(base_path or"."):gsub("/$","").."/"
+squishy_file=base_path.."squishy";
+out_fn=e.output;
+local t,h=pcall(dofile,squishy_file);
+if not t then
+a("Couldn't read squishy file: "..h);
+os.exit(1);
+end
+if not out_fn then
+a("No output file specified by user or squishy file");
+os.exit(1);
+elseif#l==0 and#o==0 and#i==0 then
+a("No files, modules or resources. Not going to generate an empty file.");
+os.exit(1);
+end
+local h={};
+function h.filesystem(e)
+local e,t=io.open(e);
+if not e then return false,t;end
+local t=e:read("*a");
+e:close();
+return t;
+end
+if e.use_http then
+function h.http(e)
+local t=require"socket.http";
+local t,e=t.request(e);
+if e==200 then
+return t;
+end
+return false,"HTTP status code: "..tostring(e);
+end
+else
+function h.http(e)
+return false,"Module not found. Re-squish with --use-http option to fetch it from "..e;
+end
+end
+s("Resolving modules...");
+do
+local e=package.config:sub(1,1);
+local i=package.config:sub(5,5);
+local s=package.path:gsub("[^;]+",function(t)
+if not t:match("^%"..e)then
+return base_path..t;
+end
+end):gsub("/%./","/");
+local t=package.cpath:gsub("[^;]+",function(t)
+if not t:match("^%"..e)then
+return base_path..t;
+end
+end):gsub("/%./","/");
+function resolve_module(t,a)
+t=t:gsub("%.",e);
+for e in a:gmatch("[^;]+")do
+e=e:gsub("%"..i,t);
+n("Looking for "..e)
+local t=io.open(e);
+if t then
+n("Found!");
+t:close();
+return e;
+end
+end
+return nil;
+end
+for t,e in ipairs(o)do
+if not e.path then
+e.path=resolve_module(e.name,s);
+if not e.path then
+a("Couldn't resolve module: "..e.name);
+else
+e.path=e.path:gsub("^"..base_path:gsub("%p","%%%1"),"");
+end
+end
+end
+end
+for t,e in ipairs(o)do
+if not e.path then
+a("Exiting due to missing modules without a path");
+os.exit(1);
+end
+end
+if e.list_files or e.list_missing_files then
+local function t(t)
+if e.list_missing_files then
+local e=io.open(t);
+if e then
+e:close();
+return;
+end
+end
+io.write(t,"\n");
+end
+for a,e in pairs(l)do
+t(e);
+end
+for a,e in ipairs(o)do
+t(e.path);
+end
+for a,e in ipairs(i)do
+t(e.path);
+end
+return;
+end
+u("Writing "..out_fn.."...");
+local t,r=io.open(out_fn,"w+");
+if not t then
+a("Couldn't open output file: "..tostring(r));
+os.exit(1);
+end
+if e.executable then
+if e.executable==true then
+t:write("#!/usr/bin/env lua\n");
+else
+t:write("#!"..e.executable,"\n");
+end
+end
+s("Packing modules...");
+for o,i in ipairs(o)do
+local d,r=i.name,i.path;
+if i.path:sub(1,1)~="/"then
+r=base_path..i.path;
+end
+n("Packing "..d.." ("..r..")...");
+local o,s=h.filesystem(r);
+if(not o)and i.url then
+local e=i.url:gsub("%?",i.path);
+n("Fetching: "..e)
+if e:match("^https?://")then
+o,s=h.http(e);
+elseif e:match("^file://")or e:match("^[/%.]")then
+local e,t=io.open((e:gsub("^file://","")));
+if e then
+o,s=e:read("*a");
+e:close();
+else
+o,s=nil,t;
+end
+end
+end
+if o then
+o=o:gsub("^#[^\r\n]*\r?\n","");
+if not e.debug then
+t:write("package.preload['",d,"'] = (function (...)\n");
+if e.module_compat then
+t:write[[
+					local _ENV = _ENV;
+					local function module(name, ...)
+						local t = package.loaded[name] or _ENV[name] or { _NAME = name };
+						package.loaded[name] = t;
+						for i = 1, select("#", ...) do
+							(select(i, ...))(t);
+						end
+						_ENV = t;
+						_M = t;
+						return t;
+					end
+				]];
+end
+t:write(o);
+t:write(" end)\n");
+else
+t:write("package.preload['",d,"'] = assert(loadstring(\n");
+t:write(("%q\n"):format(o));
+t:write(", ",("%q"):format("@"..r),"))\n");
+end
+else
+a("Couldn't pack module '"..d.."': "..(s or"unknown error... path to module file correct?"));
+os.exit(1);
+end
+end
+if#i>0 then
+s("Packing resources...")
+t:write("do local resources = {};\n");
+for o,e in ipairs(i)do
+local i,e=e.name,e.path;
+local e,o=io.open(base_path..e,"rb");
+if not e then
+a("Couldn't load resource: "..tostring(o));
+os.exit(1);
+end
+local e=e:read("*a");
+local a=0;
+e:gsub("(=+)",function(e)a=math.max(a,#e);end);
+t:write(("resources[%q] = %q"):format(i,e));
+end
+if e.virtual_io then
+local e=require_resource("vio");
+if not e then
+a("Virtual IO requested but is not enabled in this build of squish");
+else
+t:write(e,"\n")
+t:write[[local io_open, io_lines = io.open, io.lines; function io.open(fn, mode)
+					if not resources[fn] then
+						return io_open(fn, mode);
+					else
+						return vio.open(resources[fn]);
+				end end
+				function io.lines(fn)
+					if not resources[fn] then
+						return io_lines(fn);
+					else
+						return vio.open(resources[fn]):lines()
+				end end
+				local _dofile = dofile;
+				function dofile(fn)
+					if not resources[fn] then
+						return _dofile(fn);
+					else
+						return assert(loadstring(resources[fn]))();
+				end end
+				local _loadfile = loadfile;
+				function loadfile(fn)
+					if not resources[fn] then
+						return _loadfile(fn);
+					else
+						return loadstring(resources[fn], "@"..fn);
+				end end ]]
+end
+end
+t:write[[function require_resource(name) return resources[name] or error("resource '"..tostring(name).."' not found"); end end ]]
+end
+n("Finalising...")
+for e,o in pairs(l)do
+local e,i=io.open(base_path..o);
+if not e then
+a("Failed to open "..o..": "..i);
+os.exit(1);
+else
+t:write((e:read("*a"):gsub("^#.-\n","")));
+e:close();
+end
+end
+t:close();
+u("OK!");
