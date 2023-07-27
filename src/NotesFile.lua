@@ -6,6 +6,9 @@ function NotesFile.load()
 	local data = {}
 	local file = csv.open("notes.csv", {header=true})
     for fields in file:lines() do
+        if fields.fileDescription and #fields.fileDescription > 0 then
+            print(fields.fileDescription)
+        end
         data[fields.encounterKey] = decodeNote(fields)
     end
 
