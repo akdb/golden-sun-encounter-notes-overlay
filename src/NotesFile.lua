@@ -35,7 +35,7 @@ function decodeNote(fields)
     return row
 end
 
-function wordSplit(str, char)
+function wordSplit(str)
     local result = {}
     for chunk in str:gmatch('%S+') do 
         table.insert(result, chunk) 

@@ -123,8 +123,6 @@ function Controller.frame()
                 if queuedCommandCount ~= lastQueuedCommandCount then
                     --drawing anything on a frame resets previous drawings
                     if queuedCommandCount == 0 or newBattle then
-                        --enemy sprites start after party sprites, which start at index 1
-                        local enemyPositions = GameData.spriteData:positionsArray(GameData.partyFlags:partySize() + 1, currentEnemyCount)
                         Overlay.drawNumbers(currentEnemyCount)
                         Overlay.drawNotes(currentNotes)
                     elseif queuedCommandCount == currentBattleSize then
