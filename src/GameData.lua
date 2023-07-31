@@ -1,12 +1,23 @@
 local MemoryStructure = require('MemoryStructure')
 
+local gameIdentifier = MemoryStructure(0x080000a0, 12, 12, memory.read_bytes_as_array):readString()
+
+local isTBS = gameIdentifier == 'Golden_Sun_A'
+local isTLA = gameIdentifier == 'GOLDEN_SUN_B'
+if not isTBS and not isTLA then
+    error("Detected game as '" .. gameIdentifier .. "' which is not supported")
+end
+
 local GameData = {
-    partyFlags      = MemoryStructure(0x02000040,   1, nil, memory.read_u8),
-    battleSlotList  = MemoryStructure(0x020300b2,   2, nil, memory.read_u8),
-    partyOrder      = MemoryStructure(0x02000438,   1, nil, memory.read_u8),
-    battleCommand   = MemoryStructure(0x02030338,  16, nil, memory.read_u8),
-    spriteData      = MemoryStructure(0x07000000,   8, nil, memory.read_u16_le),
-    enemyNames      = MemoryStructure(0x02030878, 332,  15, memory.read_bytes_as_array)
+    gameIdentifier =  gameIdentifier,
+    partyFlags      = MemoryStructure(          0x02000040,   1, nil, memory.read_u8),
+    battleSlotList  = MemoryStructure(          0x020300b2,   2, nil, memory.read_u8),
+    partyOrder      = MemoryStructure(isTBS and 0x02000438 or
+                                                0x02000458,   1, nil, memory.read_u8),
+    battleCommand   = MemoryStructure(          0x02030338,  16, nil, memory.read_u8),
+    spriteData      = MemoryStructure(          0x07000000,   8, nil, memory.read_u16_le),
+    enemyNames      = MemoryStructure(isTBS and 0x02030878 or
+                                                0x020308c8, 332,  15, memory.read_bytes_as_array)
 }
 
 function GameData.partyFlags:partySize()

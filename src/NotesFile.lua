@@ -24,7 +24,7 @@ end
 function decodeNote(fields)
     local row = {extra = fields.extra}
 
-    for i = 1,4 do
+    for i = 1,8 do
         local noteData = wordSplit(fields[tostring(i)])
         row[i] = {}
         --note [1] text [2] target

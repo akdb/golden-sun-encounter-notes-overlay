@@ -1,5 +1,6 @@
 local NotesFile = require 'NotesFile'
 local GameData = require 'GameData'
+local GameProfiles = require 'GameProfiles'
 local Overlay = require 'Overlay'
 local Downloader = require 'Downloader'
 
@@ -31,6 +32,9 @@ end
 
 
 function Controller.init(notesFile, downloadUrl)
+    notesFile = notesFile or GameProfiles[GameData.gameIdentifier].notesFile
+    downloadUrl = downloadUrl or GameProfiles[GameData.gameIdentifier].downloadUrl
+
     local test = io.open(notesFile, 'r')
     local doLoad = false
     if test == nil then
