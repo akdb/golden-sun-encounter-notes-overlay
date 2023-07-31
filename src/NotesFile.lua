@@ -37,8 +37,10 @@ end
 
 function wordSplit(str)
     local result = {}
-    for chunk in str:gmatch('%S+') do 
-        table.insert(result, chunk) 
+    if str then
+        for chunk in str:gmatch('%S+') do
+            table.insert(result, chunk)
+        end
     end
     return result
 end

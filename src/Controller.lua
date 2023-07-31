@@ -3,7 +3,7 @@ local GameData = require 'GameData'
 local Overlay = require 'Overlay'
 local Downloader = require 'Downloader'
 
-local allNotes = nil
+local allNotes = {}
 local currentEncounter = nil
 local currentBattleSize = 0
 local currentNotes = nil
@@ -32,19 +32,26 @@ end
 
 function Controller.init(notesFile, downloadUrl)
     local test = io.open(notesFile, 'r')
+    local doLoad = false
     if test == nil then
         if downloadUrl == nil then
-            error("Cannot proceed, " .. notesFile .. " does not exist")
-        end
-
-        print(notesFile .. " not found, downloading from " .. downloadUrl)
-        if Downloader.get(downloadUrl, notesFile) == false then
-            error("Download failed, please place a " .. notesFile .. " in the same folder as gs-encounter-notes-overlay.lua")
+            print("No notes loaded, " .. notesFile .. " does not exist")
+        else
+            print(notesFile .. " not found, downloading from " .. downloadUrl)
+            doLoad = Downloader.get(downloadUrl, notesFile)
+            if not doLoad then
+                print("WARNING: Download failed, please place a " .. notesFile .. " in the same folder as gs-encounter-notes-overlay.lua")
+            end
         end
     else
         io.close(test)
+        doLoad = true
     end
-    allNotes = NotesFile.load(notesFile)
+
+    if doLoad then
+        allNotes = NotesFile.load(notesFile)
+    end
+
     Overlay.clear()
     print("")
     print("Golden Sun Encounter Notes script prepped and ready")
