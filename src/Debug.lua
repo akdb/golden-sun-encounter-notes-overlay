@@ -4,7 +4,7 @@ end
 
 local Controller = dofile('Controller.lua')
 
-Controller.init('gs-encounter-notes.csv')
+Controller.init()
 
 while true do
     Controller.frame()
