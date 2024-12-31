@@ -2,6 +2,7 @@ local NotesFile = require 'NotesFile'
 local GameData = require 'GameData'
 local Overlay = require 'Overlay'
 local Downloader = require 'Downloader'
+local bhJoypad = joypad
 
 local allNotes = {}
 local currentEncounter = nil
@@ -11,6 +12,9 @@ local reversePolarity = false
 local lastQueuedCommandCount = nil
 local setPositionsWait = -1
 local newBattle = false
+
+local drawNotes = false
+local drawNumbers = false
 
 local Controller = {}
 
@@ -72,6 +76,8 @@ function Controller.frame()
         currentNotes = nil
         lastQueuedCommandCount = nil
         Overlay.clear()
+        drawNotes = false
+        drawNumbers = false
 
     elseif currentEnemyCount > 0 then
         if currentEncounter == nil then --Encounter begins
@@ -130,10 +136,10 @@ function Controller.frame()
                 if queuedCommandCount ~= lastQueuedCommandCount then
                     --drawing anything on a frame resets previous drawings
                     if queuedCommandCount == 0 or newBattle then
-                        Overlay.drawNumbers(currentEnemyCount)
-                        Overlay.drawNotes(currentNotes)
+                        drawNumbers = true
+                        drawNotes = true
                     elseif queuedCommandCount == currentBattleSize then
-                        Overlay.drawNotes(currentNotes)
+                        drawNotes = true
                     end
                 end
             end
@@ -141,6 +147,18 @@ function Controller.frame()
             lastQueuedCommandCount = queuedCommandCount
             newBattle = false
         end
+    end
+
+    local input = bhJoypad.get()
+    if input['Start'] then
+        if drawNotes then
+            Overlay.drawNotes(currentNotes)
+        end
+        if drawNumbers then
+            Overlay.drawNumbers(currentEnemyCount)
+        end
+    else
+        Overlay.clear()
     end
 end
 
