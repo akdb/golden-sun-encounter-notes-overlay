@@ -2,8 +2,9 @@ local NotesFile = require 'NotesFile'
 local GameData = require 'GameData'
 local Overlay = require 'Overlay'
 local Downloader = require 'Downloader'
+local bhJoypad = joypad
 
-local allNotes = nil
+local allNotes = {}
 local currentEncounter = nil
 local currentBattleSize = 0
 local currentNotes = nil
@@ -11,6 +12,9 @@ local reversePolarity = false
 local lastQueuedCommandCount = nil
 local setPositionsWait = -1
 local newBattle = false
+
+local drawNotes = false
+local drawNumbers = false
 
 local Controller = {}
 
@@ -32,19 +36,26 @@ end
 
 function Controller.init(notesFile, downloadUrl)
     local test = io.open(notesFile, 'r')
+    local doLoad = false
     if test == nil then
         if downloadUrl == nil then
-            error("Cannot proceed, " .. notesFile .. " does not exist")
-        end
-
-        print(notesFile .. " not found, downloading from " .. downloadUrl)
-        if Downloader.get(downloadUrl, notesFile) == false then
-            error("Download failed, please place a " .. notesFile .. " in the same folder as gs-encounter-notes-overlay.lua")
+            print("No notes loaded, " .. notesFile .. " does not exist")
+        else
+            print(notesFile .. " not found, downloading from " .. downloadUrl)
+            doLoad = Downloader.get(downloadUrl, notesFile)
+            if not doLoad then
+                print("WARNING: Download failed, please place a " .. notesFile .. " in the same folder as gs-encounter-notes-overlay.lua")
+            end
         end
     else
         io.close(test)
+        doLoad = true
     end
-    allNotes = NotesFile.load(notesFile)
+
+    if doLoad then
+        allNotes = NotesFile.load(notesFile)
+    end
+
     Overlay.clear()
     print("")
     print("Golden Sun Encounter Notes script prepped and ready")
@@ -65,6 +76,8 @@ function Controller.frame()
         currentNotes = nil
         lastQueuedCommandCount = nil
         Overlay.clear()
+        drawNotes = false
+        drawNumbers = false
 
     elseif currentEnemyCount > 0 then
         if currentEncounter == nil then --Encounter begins
@@ -123,12 +136,10 @@ function Controller.frame()
                 if queuedCommandCount ~= lastQueuedCommandCount then
                     --drawing anything on a frame resets previous drawings
                     if queuedCommandCount == 0 or newBattle then
-                        --enemy sprites start after party sprites, which start at index 1
-                        local enemyPositions = GameData.spriteData:positionsArray(GameData.partyFlags:partySize() + 1, currentEnemyCount)
-                        Overlay.drawNumbers(currentEnemyCount)
-                        Overlay.drawNotes(currentNotes)
+                        drawNumbers = true
+                        drawNotes = true
                     elseif queuedCommandCount == currentBattleSize then
-                        Overlay.drawNotes(currentNotes)
+                        drawNotes = true
                     end
                 end
             end
@@ -136,6 +147,18 @@ function Controller.frame()
             lastQueuedCommandCount = queuedCommandCount
             newBattle = false
         end
+    end
+
+    local input = bhJoypad.get()
+    if input['Start'] then
+        if drawNotes then
+            Overlay.drawNotes(currentNotes)
+        end
+        if drawNumbers then
+            Overlay.drawNumbers(currentEnemyCount)
+        end
+    else
+        Overlay.clear()
     end
 end
 

@@ -71,14 +71,7 @@ function GameData.enemyNames:asArray(encounterSize)
 
     local names = {}
     for i = 0,encounterSize-1 do
-        local data = self:read(i)
-        local str = {}
-        for _, v in ipairs(data) do
-            if v > 0 then
-                table.insert(str, string.char(v))
-            end
-        end
-        table.insert(names, table.concat(str))
+        table.insert(names, self:readString(i))
     end
 
     return names

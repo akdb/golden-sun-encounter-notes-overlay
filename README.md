@@ -13,12 +13,16 @@ Golden Sun practice tool: BizHawk Lua script that reads a notes CSV file and dis
 
 ## Usage
 
-Load `gs-encounter-notes-overlay.lua` from BizHawk 2.8's Lua Console while playing Golden Sun.
+Load `gs-encounter-notes-overlay.lua` from BizHawk's Lua Console while playing Golden Sun.
 
-The `gs-encounter-notes.csv` file in the same folder, will drive the information displayed on-screen.
+The `gs-encounter-notes.csv` file in the same folder will drive the information displayed on-screen.
+
+**Hold start** to show notes for the encounter.
+Each target will be numbered and if an encounter set has notes, actions for each character will be displayed along with any extra notes.
+
+This has been tested successfully with BizHawk 2.8, 2.9, and 2.9.1.
+
 If the file does not exist, one will be downloaded automatically.
-
-This has not been tested with any other emulator version.
 
 This has not been tested with Golden Sun: The Lost Age, but support will come.
 
